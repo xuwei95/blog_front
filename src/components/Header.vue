@@ -1,0 +1,269 @@
+<template>
+  <div class="container" v-cloak>
+      <nav>
+          <!-- 窄屏下的菜单按钮 -->
+          <div class="nav-menu-button" @click="toggleSidebar">
+              <span></span>
+              <span></span>
+              <span></span>
+          </div>
+          <!-- logo -->
+          <div class="nav-logo"><router-link :to="{name: 'Home'}">blog</router-link></div>
+          <!-- 搜索框 -->
+          <div class="nav-search">
+            <el-autocomplete
+              class="inline-input"
+              v-model="state1"
+              :fetch-suggestions="querySearch"
+              placeholder="请输入内容"
+              @select="handleSelect"
+              suffix-icon="el-icon-search"
+            ></el-autocomplete>
+          </div>
+          <!-- 菜单项 -->
+          <ul :class="['nav-list',{'nav-list-opend': opended}]">
+            <!--v-clickoutside="clickOutside"-->
+              <li v-for="item in navList" :key="item.url">
+                  <a v-if="item.hasList">{{item.text}}<div class="nav-down-arrow"></div></a>
+                  <router-link v-if="!item.hasList" :to="{name: item.url}" @click.native="clickOutside">{{item.text}}</router-link>
+                  <ul class="nav-list-menu" v-if="item.hasList">
+                      <li v-for="childItem in item.list" :key="childItem.url">
+                          <router-link :to="{name: childItem.url}" @click.native="clickOutside">{{childItem.text}}</router-link>
+                      </li>
+                  </ul>
+              </li>
+          </ul>
+      </nav>
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      navList: [
+        {
+          text: '首页',
+          url: 'Home',
+          hasList: false
+        },
+        {
+          text: '分类',
+          url: 'Category',
+          hasList: false
+        },
+        // {
+        //   text: '分类',
+        //   hasList: true,
+        //   list: [
+        //     {
+        //       text: 'HTML',
+        //       url: 'htmlPage'
+        //     },
+        //     {
+        //       text: 'CSS',
+        //       url: 'cssPage'
+        //     },
+        //     {
+        //       text: 'JavaScript',
+        //       url: 'javascriptPage'
+        //     },
+        //     {
+        //       text: 'Vue.js',
+        //       url: 'vuePage'
+        //     },
+        //     {
+        //       text: '杂七杂八',
+        //       url: 'otherPage'
+        //     }
+        //   ]
+        // },
+        {
+          text: '关于',
+          url: 'About'
+        }
+      ],
+      opended: false,
+      state1: '',
+      restaurants: [],
+      queryString: ''
+    }
+  },
+  methods: {
+    toggleSidebar (e) {
+      this.opended = !this.opended
+      e.stopPropagation()
+    },
+    clickOutside () {
+      this.opended = false
+    },
+    querySearch (String, cb) {
+      this.queryString = String
+      var restaurants = this.restaurants
+      cb(restaurants)
+    },
+    query_data () {
+      this.axios.get('/serach/?queryString=' + this.queryString)
+        .then((response) => {
+          this.restaurants = response.data.data
+        })
+        .catch(error => console.log(error))
+    },
+    handleSelect (item) {
+      this.$router.push({path: '/detail/?id=' + item.id})
+    }
+  },
+  updated () {
+    this.query_data()
+  }
+}
+</script>
+
+<style scoped>
+/* 宽屏模式 */
+.container {
+  width: 100%;
+  height: auto;
+  background: #fff;
+  position: fixed;
+  z-index: 999;
+  margin:-8px;
+  border-bottom: 1px solid #eaecef;
+}
+nav {
+  max-width: 980px;
+  margin: 0 auto;
+  height: 55px;
+  box-sizing: border-box;
+  padding: 10px 0;
+}
+nav .nav-logo {
+  width: auto;
+  height: 100%;
+  margin-left: 20px;
+  float: left;
+}
+nav .nav-logo a {
+  text-decoration: none;
+  color: #666;
+  font-size: 30px;
+  font-weight: bold;
+}
+nav .nav-logo a:hover {
+  color: #777;
+}
+nav .nav-list {
+  float: right;
+  margin: 5px 0 0 0;
+}
+nav .nav-list > li {
+  list-style: none;
+  float: left;
+  text-align: center;
+}
+nav .nav-list > li a {
+  display: block;
+  line-height: 30px;
+  padding: 0 15px;
+  margin: 0 10px 10px 0;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #666;
+}
+nav .nav-list > li a:hover {
+  color: #fff;
+  background: #666;
+}
+nav .nav-list > li .nav-list-menu {
+  background: #fff;
+  box-shadow: 0 2px 10px #ccc;
+  position: absolute;
+  border-radius: 5px;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+nav .nav-list > li .nav-list-menu li {
+  list-style: none;
+}
+nav .nav-list > li .nav-list-menu li a {
+  margin: 15px 0 0 0;
+}
+nav .nav-list > li:hover .nav-list-menu {
+  height: auto;
+}
+nav .nav-down-arrow {
+  border-top: 6px solid;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  width: 0;
+  height: 0;
+  display: inline-block;
+  margin-left: 5px;
+}
+nav .nav-menu-button {
+  display: none;
+  background: #fff;
+  margin-left: 30px;
+}
+nav .nav-menu-button:active {
+    box-shadow: 0 0 2px 1px #ccc;
+}
+/* 窄屏 */
+@media (max-width: 980px) {
+  nav .nav-list {
+    position: fixed;
+    height: 100%;
+    width: 65%;
+    background: #fff;
+    margin-top: 48px;
+    top: 0;
+    left: -65%;
+    padding: 5px 0 0 0;
+    transition: 0.5s;
+  }
+  nav .nav-list > li {
+    width: 100%;
+    margin: 0 0 15px 0;
+  }
+  nav .nav-list > li .nav-list-menu {
+    position: relative;
+  }
+  nav .nav-list > li a {
+    border-radius: 0;
+    margin: 0;
+  }
+  nav .nav-menu-button {
+    display: block;
+    float: left;
+    right: 20px;
+    padding: 8px 5px;
+    position: relative;
+  }
+  nav .nav-menu-button span {
+    height: 2px;
+    width: 25px;
+    display: block;
+    background: #2c3e50;
+  }
+  nav .nav-menu-button span + span {
+    margin-top: 6px;
+  }
+  nav .nav-logo {
+      margin-left: 20px;
+  }
+}
+nav .nav-list-opend {
+  left: 0%;
+  overflow: auto;
+  box-shadow: 2px 0px 8px #ccc;
+}
+nav .nav-search{
+  width: 35%;
+  display: inline-block;
+  float: right;
+}
+/* .router-link-exact-active {
+  background: #888;
+} */
+</style>
