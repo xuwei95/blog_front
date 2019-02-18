@@ -3,6 +3,13 @@
     <div id="test-editormd-view" style="padding: 5px;" >
       <textarea style="display:none;" v-model="markdown" name="test-editormd-markdown-doc"></textarea>
     </div>
+    <el-input
+      type="textarea"
+      :rows="2"
+      placeholder="请输入内容"
+      v-model="comments">
+    </el-input>
+    <el-button type="primary" @click="publish">发表评论</el-button>
   </div>
 </template>
 
@@ -12,7 +19,18 @@ export default {
   data () {
     return {
       markdown: '',
-      id: 2
+      id: 2,
+      comments: '',
+      is_login: false,
+      publish_form: {
+        username: '',
+        content: '',
+        artical: ''
+      },
+      verify_form: {
+        token: ''
+      },
+      user: ''
     }
   },
   methods: {
@@ -38,11 +56,56 @@ export default {
         flowChart: true,
         sequenceDiagram: true
       })
-    }
+    },
+    get_user_info() {
+      this.axios.get('/u_info/?token=' + this.token)
+      .then((response) => {
+        this.user = response.data.data.name
+      })
+      .catch(error => console.log(error))
+    },
+    is_login() {
+      this.verify_form.token = this.token
+      this.axios.post('/api_auth_verify/',
+        this.verify_form
+      )
+      .then((response) => {
+        this.get_user_info()
+      })
+      .catch(error => {
+        Message({
+          message: '登录验证已过期，请重新登录！',
+          type: 'error',
+          duration: 2 * 1000
+        })
+        removeToken()
+      })
+    },
+    publish() {
+      this.publish_form.username = this.username
+      this.axios.post('/api_auth_verify/',
+        this.verify_form
+      )
+      .then((response) => {
+        this.get_user_info()
+      })
+      .catch(error => {
+        Message({
+          message: '登录验证已过期，请重新登录！',
+          type: 'error',
+          duration: 2 * 1000
+        })
+        removeToken()
+      })
+    },
   },
   created () {
     this.id = this.$route.query.id
     this.getContent()
+    this.token = getToken()
+    if (this.token !== undefined){
+      this.is_login()
+    }
   },
   updated () {
     this.initEditor()

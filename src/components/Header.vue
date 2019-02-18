@@ -36,7 +36,27 @@
                  <a href="#" @click="show_login">登录</a>
               </li>
               <li v-else>
-                 <img :src="'' + head_img" height="35" width="35" class="headimg"/>
+                <el-dropdown class="avatar-container" trigger="click">
+                  <div class="avatar-wrapper">
+                    <img :src="'' + head_img" class="user-avatar headimg" width="35px" height="35px">
+                    <i class="el-icon-caret-bottom"/>
+                  </div>
+                  <el-dropdown-menu slot="dropdown" class="user-dropdown">
+                    <!--<router-link class="inlineBlock" to="/setting/my_setting/my_setting">-->
+                      <!--<el-dropdown-item>-->
+                        <!--基本资料-->
+                      <!--</el-dropdown-item>-->
+                    <!--</router-link>-->
+                    <!--<router-link class="inlineBlock" to="/setting/my_setting/password_setting">-->
+                      <!--<el-dropdown-item>-->
+                        <!--安全设置-->
+                      <!--</el-dropdown-item>-->
+                    <!--</router-link>-->
+                    <el-dropdown-item>
+                      <span style="display:block;" @click="logout">退出</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
               </li>
           </ul>
       </nav>
@@ -261,6 +281,10 @@ export default {
         this.head_img = response.data.data.head_img
       })
       .catch(error => console.log(error))
+    },
+    logout() {
+      removeToken()
+      window.location.reload()
     }
   },
   created () {
