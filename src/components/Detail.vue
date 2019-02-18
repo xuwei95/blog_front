@@ -83,19 +83,20 @@ export default {
     },
     publish() {
       this.publish_form.username = this.username
-      this.axios.post('/api_auth_verify/',
-        this.verify_form
+      this.publish_form.content = this.comments
+      this.publish_form.artical = this.id
+      this.axios.post('/publish_comment/',
+        this.publish_form
       )
       .then((response) => {
-        this.get_user_info()
-      })
-      .catch(error => {
-        Message({
-          message: '登录验证已过期，请重新登录！',
-          type: 'error',
+         Message({
+          message: 'response.data.msg',
+          type: 'success',
           duration: 2 * 1000
         })
-        removeToken()
+      })
+      .catch(error => {
+       console.log(error)
       })
     },
   },
