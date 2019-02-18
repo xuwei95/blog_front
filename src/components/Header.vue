@@ -32,12 +32,56 @@
                       </li>
                   </ul>
               </li>
+              <li v-if="!user">
+                 <a href="#" @click="show_login">登录</a>
+              </li>
+              <li v-else>
+                 <img :src="'' + head_img" height="35" width="35" class="headimg"/>
+              </li>
           </ul>
       </nav>
+    <el-dialog :visible.sync="regist_show" title="注册" :modal-append-to-body='false'>
+      <div class="highlight">
+        <el-form ref="form" :model="regist_form" label-width="80px">
+          <div class="center">
+            <el-form-item label="用户名:">
+              <el-input v-model="regist_form.username"/>
+            </el-form-item>
+            <el-form-item label="密码:">
+              <el-input v-model="regist_form.password" type="password"/>
+            </el-form-item>
+            <el-form-item label="重复密码:">
+              <el-input v-model="regist_form.repass" type="password"/>
+            </el-form-item>
+            <br><br><br>
+            <el-button type="primary" @click="regist">确认</el-button>
+          </div>
+        </el-form>
+      </div>
+    </el-dialog>
+    <el-dialog :visible.sync="login_show" title="登录" :modal-append-to-body='false'>
+      <el-form ref="form" :model="login_form" label-width="80px">
+        <div class="center">
+          <el-form-item label="用户名:">
+            <el-input v-model="login_form.username"/>
+          </el-form-item>
+          <el-form-item label="密码:">
+            <el-input v-model="login_form.password" type="password"/>
+          </el-form-item>
+          <br><br><br>
+          <el-button type="primary" @click="login">确认</el-button>
+          <a href="#" @click="show_regist">注册</a>
+        </div>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { getToken } from '@/utils/auth'
+import { setToken } from '@/utils/auth'
+import { removeToken } from '@/utils/auth'
+import { Message } from 'element-ui'
 export default {
   data () {
     return {
@@ -86,7 +130,24 @@ export default {
       opended: false,
       state1: '',
       restaurants: [],
-      queryString: ''
+      queryString: '',
+      regist_form: {
+        username: '',
+        password: '',
+        repass: ''
+      },
+      regist_show: false,
+      login_form: {
+        username: '',
+        password: ''
+      },
+      verify_form: {
+        token: ''
+      },
+      login_show: false,
+      user: false,
+      head_img: '',
+      token: ''
     }
   },
   methods: {
@@ -103,14 +164,109 @@ export default {
       cb(restaurants)
     },
     query_data () {
-      this.axios.get('/serach/?queryString=' + this.queryString)
-        .then((response) => {
-          this.restaurants = response.data.data
-        })
-        .catch(error => console.log(error))
+      if (this.queryString.length !== 0) {
+        this.axios.get('/serach/?queryString=' + this.queryString)
+          .then((response) => {
+            this.restaurants = response.data.data
+          })
+          .catch(error => console.log(error))
+      }
     },
     handleSelect (item) {
       this.$router.push({path: '/detail/?id=' + item.id})
+    },
+    regist() {
+      this.login_show = false
+      this.axios.post('/regist/',
+        this.regist_form
+      ).then((response) => {
+        if (response.data.success === 1){
+          Message({
+            message: '注册成功',
+            type: 'success',
+            duration: 2 * 1000
+          })
+          this.login_form.username = this.regist_form.username
+          this.login_form.password = this.regist_form.password
+          this.login()
+          this.regist_show = false
+        }else{
+          Message({
+            message: '注册失败,' + response.data.msg,
+            type: 'error',
+            duration: 2 * 1000
+          })
+        }
+      })
+      .catch(error => {
+        Message({
+          message: '未知错误！',
+          type: 'error',
+          duration: 2 * 1000
+        })
+      })
+    },
+    show_regist() {
+      this.opended = false
+      this.login_show = false
+      this.regist_show = true
+    },
+    login() {
+      this.axios.post('/api_auth/',
+        this.login_form
+      ).then((response) => {
+        this.token = response.data.data.token
+        setToken(this.token)
+        this.get_user_info()
+        Message({
+          message: '登录成功',
+          type: 'success',
+          duration: 2 * 1000
+        })
+        this.login_show = false
+      })
+      .catch(error => {
+        Message({
+          message: '用户名或密码错误！',
+          type: 'error',
+          duration: 2 * 1000
+        })
+      })
+    },
+    show_login() {
+      this.opended = false
+      this.login_show = true
+    },
+    is_login() {
+      this.verify_form.token = this.token
+      this.axios.post('/api_auth_verify/',
+        this.verify_form
+      )
+      .then((response) => {
+        this.get_user_info()
+      })
+      .catch(error => {
+        Message({
+        message: '登录验证已过期，请重新登录！',
+        type: 'error',
+        duration: 2 * 1000
+      })
+        removeToken()
+      })
+    },
+    get_user_info() {
+      this.axios.get('/u_info/?token=' + this.token)
+      .then((response) => {
+        this.user = response.data.data.name
+        this.head_img = response.data.data.head_img
+      })
+      .catch(error => console.log(error))
+    }
+  },
+  created () {
+    this.token = getToken()
+    if (this.token !== undefined){
+      this.is_login()
     }
   },
   updated () {
@@ -266,4 +422,10 @@ nav .nav-search{
 /* .router-link-exact-active {
   background: #888;
 } */
+.center{
+  text-align: center;
+}
+.headimg{
+  border-radius: 35px;
+}
 </style>
