@@ -1,36 +1,43 @@
 <template>
   <div class="content">
-    <div id="test-editormd-view" style="padding: 5px;" >
-      <textarea style="display:none;" v-model="markdown" name="test-editormd-markdown-doc"></textarea>
+    <div class="article_meta">
+      <h1 class="title">{{ meta.title }}</h1>
+      <br>
+      <div class="article-footer">
+        <span><i class="fa fa-clock-o"></i>{{ meta.created_at }}</span>
+        <span class="article-author"><i class="fa fa-user"></i>{{ meta.author }}</span>
+        <span><i class="fa fa-tag"></i>&nbsp;&nbsp;<a :href="'/#/category?id=' + meta.category_id">{{ meta.category }}</a></span>
+        <span class="article-viewinfo"><i class="fa fa-eye"></i>{{ meta.viewers }}</span>
+      </div>
     </div>
-    <el-input
-      type="textarea"
-      :rows="2"
-      placeholder="请输入内容"
-      v-model="comments">
-    </el-input>
-    <el-button type="primary" @click="publish">发表评论</el-button>
+    <div>
+      <div id="test-editormd-view" style="padding: 5px;" >
+        <textarea style="display:none;" v-model="markdown" name="test-editormd-markdown-doc"></textarea>
+      </div>
+    </div>
+    <Comments></Comments>
   </div>
 </template>
 
 <script>
+import Comments from '@/components/Comments'
 export default {
-  name: 'Detail',
   data () {
     return {
       markdown: '',
       id: 2,
-      comments: '',
-      is_login: false,
-      publish_form: {
-        username: '',
+      meta: {
+        author: '',
+        category: '',
+        category_id: '',
         content: '',
-        artical: ''
-      },
-      verify_form: {
-        token: ''
-      },
-      user: ''
+        created_at: '',
+        id: '',
+        is_delete: '',
+        tags: '',
+        title: '',
+        viewers: 0
+      }
     }
   },
   methods: {
@@ -42,7 +49,8 @@ export default {
           }
         })
         .then((response) => {
-          this.markdown = response.data.data.content
+          this.meta = response.data.data
+          this.markdown = this.meta.content
         })
         .catch(error => console.log(error))
     },
@@ -56,57 +64,11 @@ export default {
         flowChart: true,
         sequenceDiagram: true
       })
-    },
-    get_user_info() {
-      this.axios.get('/u_info/?token=' + this.token)
-      .then((response) => {
-        this.user = response.data.data.name
-      })
-      .catch(error => console.log(error))
-    },
-    is_login() {
-      this.verify_form.token = this.token
-      this.axios.post('/api_auth_verify/',
-        this.verify_form
-      )
-      .then((response) => {
-        this.get_user_info()
-      })
-      .catch(error => {
-        Message({
-          message: '登录验证已过期，请重新登录！',
-          type: 'error',
-          duration: 2 * 1000
-        })
-        removeToken()
-      })
-    },
-    publish() {
-      this.publish_form.username = this.username
-      this.publish_form.content = this.comments
-      this.publish_form.artical = this.id
-      this.axios.post('/publish_comment/',
-        this.publish_form
-      )
-      .then((response) => {
-         Message({
-          message: 'response.data.msg',
-          type: 'success',
-          duration: 2 * 1000
-        })
-      })
-      .catch(error => {
-       console.log(error)
-      })
-    },
+    }
   },
   created () {
     this.id = this.$route.query.id
     this.getContent()
-    this.token = getToken()
-    if (this.token !== undefined){
-      this.is_login()
-    }
   },
   updated () {
     this.initEditor()
@@ -117,7 +79,8 @@ export default {
         window.location.reload()
       }
     }
-  }
+  },
+  components: {Comments}
 }
 </script>
 
@@ -128,6 +91,27 @@ export default {
   margin-left: 5px;
   position: relative;
 }
+.title{
+  font-size: 36px;
+  text-align: center;
+}
+.article-footer {
+  height: 20px;
+  margin-top: 5px;
+  font-size: 11px;
+  padding: 2px;
+  color: #a6a6a6;
+  text-align: center;
+}
+.article-footer > span {
+  padding-right: 3%;
+}
+
+.article-footer a {
+  color: #009688;
+}
+
+
   /* 小屏幕（平板，大于等于 768px） */
 @media (min-width: 768px) {
     .content {
