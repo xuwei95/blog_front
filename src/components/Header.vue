@@ -21,8 +21,7 @@
             ></el-autocomplete>
           </div>
           <!-- 菜单项 -->
-          <ul :class="['nav-list',{'nav-list-opend': opended}]">
-            <!--v-clickoutside="clickOutside"-->
+          <ul :class="['nav-list',{'nav-list-opend': opended}]" v-clickoutside="clickOutside">
               <li v-for="item in navList" :key="item.url">
                   <a v-if="item.hasList">{{item.text}}<div class="nav-down-arrow"></div></a>
                   <router-link v-if="!item.hasList" :to="{name: item.url}" @click.native="clickOutside">{{item.text}}</router-link>
@@ -46,6 +45,7 @@ import { getToken } from '@/utils/auth'
 import { setToken } from '@/utils/auth'
 import { removeToken } from '@/utils/auth'
 import Login from '@/components/Login'
+import Clickoutside from 'element-ui/src/utils/clickoutside'
 export default {
   data () {
     return {
@@ -127,7 +127,8 @@ export default {
   updated () {
     this.query_data()
   },
-  components: {Login}
+  components: {Login},
+  directives: {Clickoutside}
 }
 </script>
 
