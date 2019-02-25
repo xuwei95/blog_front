@@ -54,6 +54,10 @@
 </template>
 
 <script>
+import { user_regist } from '@/api/api'
+import { user_login } from '@/api/api'
+import { user_verify } from '@/api/api'
+import { get_user_info } from '@/api/api'
 import { getToken } from '@/utils/auth'
 import { setToken } from '@/utils/auth'
 import { removeToken } from '@/utils/auth'
@@ -83,9 +87,7 @@ export default {
   methods: {
     regist() {
       this.login_show = false
-      this.axios.post('/regist/',
-        this.regist_form
-      ).then((response) => {
+      user_regist(this.regist_form).then((response) => {
         if (response.data.success === 1){
           Message({
             message: '注册成功',
@@ -118,12 +120,10 @@ export default {
       this.regist_show = true
     },
     login() {
-      this.axios.post('/api_auth/',
-        this.login_form
-      ).then((response) => {
+      user_login(this.login_form).then((response) => {
         this.token = response.data.data.token
         setToken('jwt-Token', this.token)
-        this.get_user_info()
+        this.fetch_user_info()
         Message({
           message: '登录成功',
           type: 'success',
@@ -146,11 +146,8 @@ export default {
     },
     is_login() {
       this.verify_form.token = this.token
-      this.axios.post('/api_auth_verify/',
-        this.verify_form
-      )
-      .then((response) => {
-        this.get_user_info()
+      user_verify(this.verify_form).then((response) => {
+        this.fetch_user_info()
       })
       .catch(error => {
         Message({
@@ -161,9 +158,8 @@ export default {
         this.logout()
       })
     },
-    get_user_info() {
-      this.axios.get('/u_info/?token=' + this.token)
-      .then((response) => {
+    fetch_user_info() {
+      get_user_info({token:this.token}).then((response) => {
         this.user = response.data.data.name
         this.head_img = response.data.data.head_img
         setToken('user', this.user)

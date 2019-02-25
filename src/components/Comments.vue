@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="user">
+    <div v-if="username">
       <br>
       <div class="layui-inline comment_form">
         <!--<img :src="'' + head_img" class="headimg" width="42px" height="42px" >-->
@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { get_comments_list } from '@/api/api'
+import { publish_comments } from '@/api/api'
 import { getToken } from '@/utils/auth'
 import { Message } from 'element-ui'
 import Login from '@/components/Login'
@@ -45,7 +47,7 @@ export default {
     return {
       id: 0,
       comments: '',
-      user: '',
+      username: '',
       head_img: '',
       publish_form: {
         username: '',
@@ -57,27 +59,23 @@ export default {
   },
   methods: {
     publish() {
-      this.publish_form.username = this.user
+      this.publish_form.username = this.username
       this.publish_form.content = this.comments
       this.publish_form.artical = this.id
-      this.axios.post('/publish_comment/',
-        this.publish_form
-      )
-      .then((response) => {
+      publish_comments(this.publish_form).then((response) => {
          Message({
           message: response.data.msg,
           type: 'success',
           duration: 2 * 1000
         })
-        this.get_comments_list()
+        this.fetch_comments_list()
       })
       .catch(error => {
        console.log(error)
       })
     },
-    get_comments_list(){
-      this.axios.get('/comments_list/?article_id=' + this.id)
-      .then((response) => {
+    fetch_comments_list(){
+      get_comments_list({article_id: this.id}).then((response) => {
         this.comments_list = response.data.data
       })
       .catch(error => console.log(error))
@@ -85,11 +83,9 @@ export default {
   },
   created () {
     this.id = this.$route.query.id
-    this.get_comments_list()
-    this.user = getToken('user')
+    this.username = getToken('user')
     this.head_img = getToken('head_img')
-  },
-  updated () {
+    this.fetch_comments_list()
   },
   components: {Login}
 }

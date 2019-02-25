@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { get_article_detail } from '@/api/api'
 import Comments from '@/components/Comments'
 export default {
   data () {
@@ -42,13 +43,7 @@ export default {
   },
   methods: {
     getContent () {
-      this.axios.get('detail/?id=' + this.id,
-        {
-          headers: {
-            // 'Access-Control-Allow-Origin': '*'
-          }
-        })
-        .then((response) => {
+      get_article_detail({id:this.id}).then((response) => {
           this.meta = response.data.data
           this.markdown = this.meta.content
         })

@@ -74,6 +74,10 @@
 </template>
 
 <script>
+import { get_article_list } from '@/api/api'
+import { get_article_hot } from '@/api/api'
+import { get_Info } from '@/api/api'
+import { get_category_list } from '@/api/api'
 export default {
   name: 'Home',
   data () {
@@ -84,43 +88,37 @@ export default {
       article_category: null,
       article_count: 0,
       has_next: false,
-      page: 1
+      article_query: {
+        page: 1,
+        limit: 10
+      }
     }
   },
   methods: {
     getArticle_list () {
-      this.axios.get('/article_list/?page=' + this.page + '&limit=10',
-        {
-          headers: {
-            // 'Access-Control-Allow-Origin': '*'
-          }
-        })
-        .then((response) => {
+       get_article_list(this.article_query).then((response) => {
           var data = response.data.data
           for (var i = 0; i < data.length; i++) {
             this.article_list.push(data[i])
           }
+          this.article_query.page += 1
         })
         .catch(error => console.log(error))
-      this.page += 1
     },
     getArticle_hot () {
-      this.axios.get('/article_hot/')
-        .then((response) => {
+      get_article_hot().then((response) => {
           this.article_hots = response.data.data
         })
         .catch(error => console.log(error))
     },
     getArticle_category () {
-      this.axios.get('/article_category/')
-        .then((response) => {
+      get_category_list().then((response) => {
           this.article_category = response.data.data
         })
         .catch(error => console.log(error))
     },
     get_info () {
-      this.axios.get('/info/')
-        .then((response) => {
+      get_Info().then((response) => {
           this.article_count = response.data.data.article_count
         })
         .catch(error => console.log(error))
@@ -133,7 +131,7 @@ export default {
     this.getArticle_category()
   },
   updated () {
-    if (this.article_count > (this.page - 1) * 10) {
+    if (this.article_count > (this.article_query.page - 1) * 10) {
       this.has_next = true
     } else {
       this.has_next = false

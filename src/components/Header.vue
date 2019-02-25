@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import { serach } from '@/api/api'
 import { getToken } from '@/utils/auth'
 import { setToken } from '@/utils/auth'
 import { removeToken } from '@/utils/auth'
@@ -111,8 +112,7 @@ export default {
     },
     query_data () {
       if (this.queryString.length !== 0) {
-        this.axios.get('/serach/?queryString=' + this.queryString)
-          .then((response) => {
+        serach({queryString: this.queryString}).then((response) => {
             this.restaurants = response.data.data
           })
           .catch(error => console.log(error))
