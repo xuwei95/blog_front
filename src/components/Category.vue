@@ -69,7 +69,6 @@ export default {
   },
   methods: {
     getArticle_list () {
-      // this.axios.get('/article_list/?page=' + this.page + '&limit=10&category_id=' + this.id)
       get_article_list(this.article_query).then((response) => {
           this.article_list = response.data.data
         })
