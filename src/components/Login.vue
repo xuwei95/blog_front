@@ -150,12 +150,14 @@ export default {
         this.fetch_user_info()
       })
       .catch(error => {
-        Message({
-        message: '登录验证已过期，请重新登录！',
-        type: 'error',
-        duration: 2 * 1000
-        })
-        this.logout()
+        if(error.response.status===400) {
+          Message({
+            message: '登录验证已过期，请重新登录！',
+            type: 'error',
+            duration: 2 * 1000
+          })
+          this.logout()
+        }
       })
     },
     fetch_user_info() {
